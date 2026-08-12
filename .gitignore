@@ -14,6 +14,9 @@ docs
 *.local
 .env
 
+# Local tooling
+.codegraph/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
