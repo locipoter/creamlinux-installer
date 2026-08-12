@@ -241,6 +241,17 @@ async fn uninstall_creamlinux(game: Game, app_handle: AppHandle) -> Result<(), S
 }
 
 async fn install_smokeapi(game: Game, app_handle: AppHandle) -> Result<(), String> {
+    // Ensure SmokeAPI is downloaded to cache before installing. The startup
+    // cache init can fail on slow networks, so install must recover by
+    // downloading on demand instead of failing with "not found in cache".
+    if crate::cache::list_smokeapi_files()?.is_empty() {
+        info!("SmokeAPI not cached, downloading first...");
+        let version = SmokeAPI::download_to_cache()
+            .await
+            .map_err(|e| format!("Failed to download SmokeAPI (check network/proxy): {}", e))?;
+        crate::cache::update_smokeapi_version(&version)?;
+    }
+
     // Check if native or proton and route accordingly
     if game.native {
         install_smokeapi_native(game, app_handle).await

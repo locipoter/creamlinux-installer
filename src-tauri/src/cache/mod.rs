@@ -150,7 +150,7 @@ pub async fn initialize_cache() -> Result<(), String> {
                 update_screamapi_version(&version)?;
             }
             Err(e) => {
-                error!("Failed to download SmokeAPI: {}", e);
+                error!("Failed to download ScreamAPI: {}", e);
                 return Err(format!("Failed to download ScreamAPI: {}", e));
             }
         }
