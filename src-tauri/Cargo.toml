@@ -18,7 +18,7 @@ regex = "1"
 xdg = "2"
 log = "0.4"
 log4rs = "1.2"
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", features = ["json", "stream"] }
 tokio = { version = "1", features = ["full"] }
 zip = "0.6"
 tempfile = "3.8"
@@ -33,6 +33,7 @@ tauri-plugin-process = "2.2.1"
 async-trait = "0.1.89"
 sha2 = "0.10.9"
 rand = "0.9.2"
+futures-util = "0.3"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]
