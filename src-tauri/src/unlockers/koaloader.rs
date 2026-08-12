@@ -93,28 +93,11 @@ impl Unlocker for Koaloader {
             .ok_or_else(|| "No zip asset found in Koaloader release".to_string())?
             .to_string();
 
-        let response = client
-            .get(&zip_url)
-            .timeout(Duration::from_secs(60))
-            .send()
-            .await
-            .map_err(|e| format!("Failed to download Koaloader: {}", e))?;
-
-        if !response.status().is_success() {
-            return Err(format!(
-                "Failed to download Koaloader: HTTP {}",
-                response.status()
-            ));
-        }
-
         let temp_dir = tempdir().map_err(|e| format!("Failed to create temp dir: {}", e))?;
         let zip_path = temp_dir.path().join("koaloader.zip");
-        let content = response
-            .bytes()
+        crate::utils::download::download_file(&zip_url, &zip_path)
             .await
-            .map_err(|e| format!("Failed to read response bytes: {}", e))?;
-        fs::write(&zip_path, &content)
-            .map_err(|e| format!("Failed to write zip file: {}", e))?;
+            .map_err(|e| format!("Failed to download Koaloader: {}", e))?;
 
         let version_dir = crate::cache::get_koaloader_version_dir(&version)?;
         let file =

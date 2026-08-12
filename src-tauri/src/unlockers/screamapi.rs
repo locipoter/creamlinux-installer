@@ -95,28 +95,12 @@ impl Unlocker for ScreamAPI {
 
         info!("Downloading ScreamAPI from: {}", zip_url);
 
-        let response = client
-            .get(&zip_url)
-            .timeout(Duration::from_secs(60))
-            .send()
-            .await
-            .map_err(|e| format!("Failed to download ScreamAPI: {}", e))?;
-
-        if !response.status().is_success() {
-            return Err(format!(
-                "Failed to download ScreamAPI: HTTP {}",
-                response.status()
-            ));
-        }
-
         let temp_dir = tempdir().map_err(|e| format!("Failed to create temp dir: {}", e))?;
         let zip_path = temp_dir.path().join("screamapi.zip");
-        let content = response
-            .bytes()
+
+        crate::utils::download::download_file(&zip_url, &zip_path)
             .await
-            .map_err(|e| format!("Failed to read response bytes: {}", e))?;
-        fs::write(&zip_path, &content)
-            .map_err(|e| format!("Failed to write zip file: {}", e))?;
+            .map_err(|e| format!("Failed to download ScreamAPI: {}", e))?;
 
         let version_dir = crate::cache::get_screamapi_version_dir(&version)?;
         let file =

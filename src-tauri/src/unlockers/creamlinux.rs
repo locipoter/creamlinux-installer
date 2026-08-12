@@ -55,37 +55,20 @@ impl Unlocker for CreamLinux {
         let version = Self::get_latest_version().await?;
         info!("Downloading CreamLinux version {}...", version);
 
-        let client = reqwest::Client::new();
-        
         // Construct the download URL using the version
         let download_url = format!(
             "https://github.com/anticitizn/creamlinux/releases/download/{}/creamlinux.zip",
             version
         );
 
-        // Download the zip
-        let response = client
-            .get(&download_url)
-            .timeout(Duration::from_secs(30))
-            .send()
-            .await
-            .map_err(|e| format!("Failed to download CreamLinux: {}", e))?;
-
-        if !response.status().is_success() {
-            return Err(format!(
-                "Failed to download CreamLinux: HTTP {}",
-                response.status()
-            ));
-        }
-
         // Save to temporary file
         let temp_dir = tempdir().map_err(|e| format!("Failed to create temp dir: {}", e))?;
         let zip_path = temp_dir.path().join("creamlinux.zip");
-        let content = response
-            .bytes()
+
+        // Download the zip
+        crate::utils::download::download_file(&download_url, &zip_path)
             .await
-            .map_err(|e| format!("Failed to read response bytes: {}", e))?;
-        fs::write(&zip_path, &content).map_err(|e| format!("Failed to write zip file: {}", e))?;
+            .map_err(|e| format!("Failed to download CreamLinux: {}", e))?;
 
         // Extract to cache directory
         let version_dir = crate::cache::get_creamlinux_version_dir(&version)?;

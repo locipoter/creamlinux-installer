@@ -58,35 +58,17 @@ impl Unlocker for SmokeAPI {
         let version = Self::get_latest_version().await?;
         info!("Downloading SmokeAPI version {}...", version);
 
-        let client = reqwest::Client::new();
         let zip_url = format!(
             "https://github.com/{}/releases/download/{}/SmokeAPI-{}.zip",
             SMOKEAPI_REPO, version, version
         );
 
-        // Download the zip
-        let response = client
-            .get(&zip_url)
-            .timeout(Duration::from_secs(30))
-            .send()
-            .await
-            .map_err(|e| format!("Failed to download SmokeAPI: {}", e))?;
-
-        if !response.status().is_success() {
-            return Err(format!(
-                "Failed to download SmokeAPI: HTTP {}",
-                response.status()
-            ));
-        }
-
-        // Save to temporary file
+        // Download to a temporary file
         let temp_dir = tempdir().map_err(|e| format!("Failed to create temp dir: {}", e))?;
         let zip_path = temp_dir.path().join("smokeapi.zip");
-        let content = response
-            .bytes()
+        crate::utils::download::download_file(&zip_url, &zip_path)
             .await
-            .map_err(|e| format!("Failed to read response bytes: {}", e))?;
-        fs::write(&zip_path, &content).map_err(|e| format!("Failed to write zip file: {}", e))?;
+            .map_err(|e| format!("Failed to download SmokeAPI: {}", e))?;
 
         // Extract to cache directory
         let version_dir = crate::cache::get_smokeapi_version_dir(&version)?;
